@@ -150,7 +150,7 @@ class Ranker(object):
     assert self.branching_factor > 1
 
   @classmethod
-  def Create(cls, score_range, branching_factor):
+  def Create(cls, score_range, branching_factor, ranker_key_name=None):
     """Constructs a new Ranker and returns it.
 
     Args:
@@ -166,11 +166,59 @@ class Ranker(object):
       A new Ranker.
     """
     # Put the root in the datastore:
-    root = datastore.Entity("ranker")
+    root = datastore.Entity("ranker", name=ranker_key_name)
+
     root["score_range"] = score_range
     root["branching_factor"] = branching_factor
     datastore.Put(root)
     myrank = Ranker(root.key())
+    return myrank
+
+  @classmethod
+  def GetRanker(cls, ranker_key_name):
+    """Returns a Ranker from the datastore or None
+
+    Args:
+      ranker_key_name: The unique key used in the datastore
+
+    Returns:
+      An existing Ranker from datastore or None
+    """
+
+    # Attempt to get Ranker by key or None if exception thrown
+    try:
+      key = datastore_types.Key.from_path("ranker", ranker_key_name)
+      myrank = datastore.Get(key)
+    except:
+      myrank = None
+
+    return myrank
+
+  @classmethod
+  def GetOrCreate(cls, ranker_key_name, score_range=None, branching_factor=None):
+    """Gets an already built ranker or Creates a new one
+
+    Args:
+      ranker_key_name: A unique key used to get or create the new Ranker
+      score_range: A list showing the range of valid scores, in the form:
+        [most_significant_score_min, most_significant_score_max,
+         less_significant_score_min, less_significant_score_max, ...]
+        Ranges are [inclusive, exclusive) {See Create()}
+      branching_factor: The branching factor of the tree.  The number of
+        datastore Gets is Theta(1/log(branching_factor)), and the amount of data
+        returned by each Get is Theta(branching_factor). {See Create()}
+
+    Returns:
+      A new or existing Ranker
+    """
+
+    root = cls.GetRanker(ranker_key_name)
+
+    if root:
+      myrank = Ranker(root.key())
+    else:
+      myrank = cls.Create(score_range, branching_factor, ranker_key_name)
+
     return myrank
 
   def __FindNodeIDs(self, score):
