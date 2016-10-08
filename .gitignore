@@ -1,0 +1,33 @@
+# Mac
+.DS_*
+._*
+
+# SVN
+.svn
+
+# IDEs
+.project
+.pydevproject
+*.sublime*
+.settings
+.idea
+*.lint
+*.diff
+
+# Python
+*.py[co]
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+
+# Virtual Environment
+venv
+
