@@ -148,6 +148,10 @@ class Ranker(object):
       assert self.score_range[i + 1] > self.score_range[i]
     assert self.branching_factor > 1
 
+  @property
+  def id_or_key_name(self):
+    return self.rootkey.id() or self.rootkey.name()
+
   @classmethod
   def Create(cls, score_range, branching_factor, id_or_key_name=None):
     """Constructs a new Ranker and returns it.
@@ -168,11 +172,14 @@ class Ranker(object):
       A new Ranker.
     """
     # Put the root in the datastore:
-    assert isinstance(id_or_key_name, (basestring, int, long))
-    if isinstance(id_or_key_name, basestring):
-      root = datastore.Entity("ranker", name=id_or_key_name)
+    if id_or_key_name:
+      assert isinstance(id_or_key_name, (basestring, int, long))
+      if isinstance(id_or_key_name, basestring):
+        root = datastore.Entity("ranker", name=id_or_key_name)
+      else:
+        root = datastore.Entity("ranker", id=id_or_key_name)
     else:
-      root = datastore.Entity("ranker", id=id_or_key_name)
+      root = datastore.Entity("ranker")
 
     root["score_range"] = score_range
     root["branching_factor"] = branching_factor
@@ -194,11 +201,11 @@ class Ranker(object):
     # Attempt to get Ranker by key or None if exception thrown
     try:
       key = datastore_types.Key.from_path("ranker", id_or_key_name)
-      myrank = datastore.Get(key)
+      root = datastore.Get(key)
     except:
-      myrank = None
+      root = None
 
-    return myrank
+    return Ranker(root.key()) if root else None
 
 
   @classmethod
@@ -219,11 +226,9 @@ class Ranker(object):
       A new or existing Ranker
     """
 
-    root = cls.GetRanker(id_or_key_name)
+    myrank = cls.GetRanker(id_or_key_name)
 
-    if root:
-      myrank = Ranker(root.key())
-    else:
+    if not myrank:
       myrank = cls.Create(score_range, branching_factor, id_or_key_name)
 
     return myrank
