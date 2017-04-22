@@ -17,7 +17,8 @@
 from google.appengine.api import datastore
 from google.appengine.api import datastore_types
 
-from common import transactional
+from .common import transactional
+
 
 class Ranker(object):
   """A data structure for storing integer scores and quickly retrieving their
