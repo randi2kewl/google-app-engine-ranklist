@@ -1,1 +1,6 @@
-__all__ = ["common", "ranker"]
+from .ranker import Ranker
+
+
+__all__ = [
+    "Ranker",
+]
